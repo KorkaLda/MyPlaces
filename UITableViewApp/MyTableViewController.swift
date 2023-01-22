@@ -6,24 +6,21 @@
 //
 
 import UIKit
+import RealmSwift
 
 class MyTableViewController: UITableViewController {
 
-    
-    let restaurantNames = [
-    "Craft Шаурма", "Кушай Мясо", "Kitchen", "Speak Easy", "БИГ ПИГ", "Вкусно и Точка", "Бочка", "Staff bar"
-    ]
+    var places: Results<Place>!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        places = realm.objects(Place.self)
     }
 
     // MARK: - Table view data source
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return restaurantNames.count
+        return places.isEmpty ? 0 : places.count
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -34,27 +31,23 @@ class MyTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! CustomTableViewCell
 
-//        var content = cell.defaultContentConfiguration()
-//        content.text =
-        cell.imageOfPlace.image = UIImage(named: restaurantNames[indexPath.row])
-        cell.nameLabel.text = restaurantNames[indexPath.row]
+        let place = places[indexPath.row]
+
+        cell.nameLabel.text = place.name
+        cell.typeLabel.text = place.type
+        cell.locationLabel.text = place.location
+        cell.imageOfPlace.image = UIImage(data: place.imageData!)
+        
         cell.imageOfPlace.layer.cornerRadius = cell.imageOfPlace.bounds.width/2
         cell.imageOfPlace.contentMode = .scaleToFill
-
         cell.imageOfPlace.clipsToBounds = true
-//        cell.backgroundColor = .green
-//        cell.contentConfiguration = content
-        
-        
+
+
+
+
         return cell
     }
     
-    
-    //MARK: - TableView Delegate
-    
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 85
-    }
     
     /*
     // MARK: - Navigation
@@ -65,5 +58,11 @@ class MyTableViewController: UITableViewController {
         // Pass the selected object to the new view controller.
     }
     */
+    
+    @IBAction func unwindSegue(_segue: UIStoryboardSegue){
+        guard let newPlaceVC = _segue.source as? NewPlaceViewController else {return}
+        newPlaceVC.saveNewPlace()
+        tableView.reloadData()
+    }
 
 }
